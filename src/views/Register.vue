@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { login } from '../api'
+import { setUser } from '../store'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -42,6 +43,7 @@ async function submit(){
     
     if(data.token){ 
       login(data.token, data.user)
+      setUser(data.user) // Actualizar estado reactivo global
       router.push('/')
     } else {
       err.value = data.error || 'Error al registrarse'
@@ -60,10 +62,18 @@ function registerWithGoogle() {
 
 <template>
   <div class="register-container">
-    <div class="card register-card">
+    <div class="register-card">
+      <div class="pokeball-decoration">
+        <div class="pokeball-big">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-center"></div>
+          <div class="pokeball-bottom"></div>
+        </div>
+      </div>
+      
       <div class="register-header">
-        <h1>Crear Cuenta</h1>
-        <p class="muted">Únete a PokeMinimal y comienza tu aventura</p>
+        <h1>¡Únete a la Aventura!</h1>
+        <p class="subtitle">Crea tu cuenta de Entrenador Pokémon</p>
       </div>
 
       <form @submit.prevent="submit" class="register-form">
@@ -160,35 +170,222 @@ function registerWithGoogle() {
   align-items:center;
   justify-content:center;
   min-height:calc(100vh - 200px);
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
 }
 
 .register-card{
-  max-width:450px;
+  max-width:520px;
   width:100%;
   margin:0 auto;
+  background: white;
+  border-radius: 25px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 4px solid #3B4CCA;
+  position: relative;
+  overflow: hidden;
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pokeball-decoration{
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  opacity: 0.08;
+  animation: spin 20s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pokeball-big{
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.pokeball-top{
+  width: 100%;
+  height: 50%;
+  background: #3B4CCA;
+  border-radius: 100px 100px 0 0;
+}
+
+.pokeball-bottom{
+  width: 100%;
+  height: 50%;
+  background: white;
+  border-radius: 0 0 100px 100px;
+}
+
+.pokeball-center{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: white;
+  border: 8px solid #222;
+  border-radius: 50%;
+}
+
+.pokeball-center::after{
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 4px solid #222;
+  border-radius: 50%;
 }
 
 .register-header{
   text-align:center;
   margin-bottom:32px;
+  position: relative;
+  z-index: 1;
 }
 
 .register-header h1{
-  color:var(--black);
+  color:#3B4CCA;
   margin-bottom:8px;
+  font-size: 28px;
+  font-weight: 800;
+  text-shadow: 2px 2px 0px rgba(255, 203, 5, 0.3);
+}
+
+.subtitle{
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .register-form{
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:16px;
+  position: relative;
+  z-index: 1;
+}
+
+.form-group{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label{
+  font-weight: 700;
+  color: #222;
+  font-size: 14px;
+}
+
+.form-group input{
+  padding: 14px 18px;
+  border: 3px solid #E0E0E0;
+  border-radius: 15px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: #F9F9F9;
+}
+
+.form-group input:focus{
+  outline: none;
+  border-color: #3B4CCA;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 76, 202, 0.1);
+}
+
+.form-group input:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error{
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A52 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid #CC0000;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.btn-accent{
+  background: linear-gradient(135deg, #3B4CCA 0%, #2A75BB 100%);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 76, 202, 0.3);
+  border: 3px solid #FFCB05;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-accent:hover:not(:disabled){
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 76, 202, 0.4);
+}
+
+.btn-accent:active:not(:disabled){
+  transform: translateY(0);
+}
+
+.btn-accent:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .register-footer{
   text-align:center;
   margin-top:24px;
   padding-top:24px;
-  border-top:1px solid var(--border);
+  border-top:2px solid #E0E0E0;
+}
+
+.register-footer a{
+  color: #3B4CCA;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.register-footer a:hover{
+  color: #2A75BB;
+  text-decoration: underline;
 }
 
 .divider{
@@ -203,38 +400,57 @@ function registerWithGoogle() {
   top:50%;
   left:0;
   right:0;
-  height:1px;
-  background:var(--border);
+  height:2px;
+  background: #E0E0E0;
 }
 
 .divider span{
   position:relative;
-  background:var(--card-bg);
+  background: white;
   padding:0 16px;
-  color:var(--text-muted);
-  font-size:0.9rem;
+  color: #999;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .btn-google{
   width:100%;
-  background:white;
-  color:#333;
-  border:2px solid var(--border);
+  background: white;
+  color: #333;
+  border: 3px solid #E0E0E0;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:12px;
-  font-weight:600;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 15px;
 }
 
 .btn-google:hover:not(:disabled){
-  background:#f8f9fa;
-  border-color:#dadce0;
-  transform:translateY(-1px);
-  box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  background: #F9F9F9;
+  border-color: #3B4CCA;
+  transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-google:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-google svg{
   flex-shrink:0;
+}
+
+.muted{
+  color: #999;
+}
+
+.small{
+  font-size: 14px;
 }
 </style>

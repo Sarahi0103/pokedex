@@ -1,23 +1,15 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { currentUser, logout } from './api'
+import { logout } from './api'
+import { user, clearUser } from './store'
 import './styles.css'
 
 const router = useRouter()
 const route = useRoute()
-const user = ref(null)
-
-onMounted(() => {
-  const userData = currentUser()
-  if(userData && userData.email){
-    user.value = userData
-  }
-})
 
 function handleLogout(){
   logout()
-  user.value = null
+  clearUser()
   router.push('/login')
 }
 
@@ -179,6 +171,18 @@ function isActive(path){
   display: flex;
   align-items: center;
   gap: 16px;
+  animation: fadeInRight 0.4s ease-out;
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .trainer-card{
@@ -190,6 +194,11 @@ function isActive(path){
   border-radius: 25px;
   border: 3px solid #FFCB05;
   box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease;
+}
+
+.trainer-card:hover{
+  transform: scale(1.02);
 }
 
 .trainer-avatar{
@@ -300,6 +309,18 @@ function isActive(path){
   padding: 8px 32px 10px 32px;
   background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 100%);
   overflow-x: auto;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .nav-item{

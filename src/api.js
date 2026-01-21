@@ -18,5 +18,14 @@ export function logout(){
 }
 
 export function currentUser(){
-  return JSON.parse(localStorage.user || '{}');
+  try{
+    if(!localStorage.token) return null;
+    const userData = localStorage.user;
+    if(!userData || userData === '{}') return null;
+    const parsed = JSON.parse(userData);
+    if(!parsed.email) return null;
+    return parsed;
+  }catch(e){
+    return null;
+  }
 }
