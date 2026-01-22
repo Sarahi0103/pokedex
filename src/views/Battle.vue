@@ -46,7 +46,8 @@ onMounted(async () => {
 
 const myTeamPokemons = computed(() => {
   if(selectedTeam.value === null || selectedTeam.value === undefined) return []
-  return myTeams.value[selectedTeam.value]?.pokemons || []
+  const team = myTeams.value[selectedTeam.value]
+  return team?.pokemons || []
 })
 
 const mockEnemyPokemons = computed(() => {
@@ -172,7 +173,7 @@ function resetBattle(){
           <select v-model="selectedTeam">
             <option :value="null">-- Selecciona un equipo --</option>
             <option v-for="(team, index) in myTeams" :key="index" :value="index">
-              {{ team.name || 'Equipo ' + (index + 1) }} ({{ team.pokemons.length }} Pokémon)
+              {{ team.name || 'Equipo ' + (index + 1) }} ({{ (team.pokemons || []).length }} Pokémon)
             </option>
           </select>
         </div>

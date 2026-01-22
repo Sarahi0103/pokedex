@@ -52,7 +52,7 @@ function openCreateModal(){
 function openEditModal(team, index){
   editingTeam.value = index
   newTeamName.value = team.name || `Equipo ${index + 1}`
-  selectedPokemons.value = [...team.pokemons]
+  selectedPokemons.value = [...(team.pokemons || [])]
   showCreateModal.value = true
 }
 
@@ -185,7 +185,7 @@ onMounted(loadData)
 
         <div class="team-pokemons">
           <div 
-            v-for="pokemon in team.pokemons" 
+            v-for="pokemon in (team.pokemons || [])" 
             :key="pokemon.id"
             class="team-pokemon"
             @click="router.push(`/pokemon/${pokemon.id}`)"
@@ -200,7 +200,7 @@ onMounted(loadData)
 
         <div class="team-footer">
           <span class="badge" style="background:var(--blue); color:white">
-            {{ team.pokemons.length }}/6 Pokémon
+            {{ (team.pokemons || []).length }}/6 Pokémon
           </span>
         </div>
       </div>

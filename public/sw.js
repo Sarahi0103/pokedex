@@ -1,6 +1,7 @@
 // Service Worker - Pokedex PWA
-const CACHE_NAME = 'pokedex-v1';
-const CACHE_DYNAMIC_NAME = 'pokedex-dynamic-v1';
+const CACHE_NAME = 'pokedex-v8';
+const CACHE_DYNAMIC_NAME = 'pokedex-dynamic-v8';
+const CACHE_IMAGES_NAME = 'pokedex-images-v8';
 
 // APP SHELL - Recursos estáticos necesarios para que la app funcione offline
 const APP_SHELL = [
@@ -49,8 +50,10 @@ self.addEventListener('activate', event => {
       .then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            // Eliminar caches que no sean el actual ni el dinámico
-            if (cacheName !== CACHE_NAME && cacheName !== CACHE_DYNAMIC_NAME) {
+            // Eliminar caches que no sean el actual ni el dinámico ni el de imágenes
+            if (cacheName !== CACHE_NAME && 
+                cacheName !== CACHE_DYNAMIC_NAME && 
+                cacheName !== CACHE_IMAGES_NAME) {
               console.log('[SW] Eliminando cache antigua:', cacheName);
               return caches.delete(cacheName);
             }
@@ -64,26 +67,86 @@ self.addEventListener('activate', event => {
   );
 });
 
-// FETCH - Estrategia: Cache First, falling back to Network
+// FETCH - Estrategia: Network First para API, Cache First para estáticos
 self.addEventListener('fetch', event => {
   const { request } = event;
   
-  // Solo cachear peticiones GET
-  if (request.method !== 'GET') {
+  // Filtrar extensiones de Chrome y URLs no HTTP/HTTPS al inicio
+  if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
+    return;
+  }
+  
+  try {
+    const url = new URL(request.url);
+    
+    // NO cachear peticiones que no sean GET
+    if (request.method !== 'GET') {
+      return;
+    }
+
+    // Network First para endpoints de API que cambian frecuentemente
+    const isDynamicAPI = url.pathname.includes('/api/favorites') || 
+                         url.pathname.includes('/api/friends') || 
+                         url.pathname.includes('/api/teams');
+
+  if (isDynamicAPI) {
+    // Estrategia Network First: Primero red, luego cache si falla
+    event.respondWith(
+      fetch(request)
+        .then(networkResponse => {
+          // Actualizar cache con la respuesta más reciente
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Si falla la red, servir desde cache
+          console.log('[SW] Red no disponible, sirviendo desde cache:', request.url);
+          return caches.match(request);
+        })
+    );
     return;
   }
 
+  // Cache First para imágenes de Pokémon (PokeAPI)
+  const isPokemonImage = url.hostname.includes('pokeapi.co') || 
+                         url.hostname.includes('raw.githubusercontent.com');
+  
+  if (isPokemonImage) {
+    event.respondWith(
+      caches.match(request)
+        .then(cacheResponse => {
+          if (cacheResponse) {
+            return cacheResponse;
+          }
+          
+          return fetch(request).then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_IMAGES_NAME).then(cache => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return networkResponse;
+          });
+        })
+    );
+    return;
+  }
+
+  // Cache First para recursos estáticos (APP SHELL y archivos estáticos)
   event.respondWith(
     caches.match(request)
       .then(cacheResponse => {
-        // Si está en cache, retornar desde cache
         if (cacheResponse) {
-          console.log('[SW] Sirviendo desde cache:', request.url);
           return cacheResponse;
         }
 
         // Si no está en cache, hacer fetch a la red
-        console.log('[SW] Fetch desde red:', request.url);
         return fetch(request)
           .then(networkResponse => {
             // Solo cachear respuestas exitosas
@@ -97,8 +160,10 @@ self.addEventListener('fetch', event => {
             // Guardar en cache dinámico
             caches.open(CACHE_DYNAMIC_NAME)
               .then(cache => {
-                console.log('[SW] Guardando en cache dinámico:', request.url);
-                cache.put(request, responseToCache);
+                // Solo cachear si no es extensión de Chrome
+                if (request.url.startsWith('http://') || request.url.startsWith('https://')) {
+                  cache.put(request, responseToCache);
+                }
               });
 
             return networkResponse;
@@ -110,6 +175,10 @@ self.addEventListener('fetch', event => {
           });
       })
   );
+  } catch (error) {
+    // Ignorar errores de URLs no soportadas
+    console.log('[SW] Error procesando fetch:', error);
+  }
 });
 
 // Mensaje desde el cliente para actualizar el SW
