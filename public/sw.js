@@ -1,7 +1,7 @@
 // Service Worker - Pokedex PWA
-const CACHE_NAME = 'pokedex-v8';
-const CACHE_DYNAMIC_NAME = 'pokedex-dynamic-v8';
-const CACHE_IMAGES_NAME = 'pokedex-images-v8';
+const CACHE_NAME = 'pokedex-v9';
+const CACHE_DYNAMIC_NAME = 'pokedex-dynamic-v9';
+const CACHE_IMAGES_NAME = 'pokedex-images-v9';
 
 // APP SHELL - Recursos estáticos necesarios para que la app funcione offline
 const APP_SHELL = [

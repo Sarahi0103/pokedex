@@ -296,6 +296,29 @@ onMounted(loadData)
 .teams-page{
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+}
+
+.teams-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/icons/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.teams-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Header estilo Pokémon */
