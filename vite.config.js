@@ -15,4 +15,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  preview: {
+    host: true,
+    port: 3000,
+  },
+  server: {
+    port: 3000,
+  },
 })

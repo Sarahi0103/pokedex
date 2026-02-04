@@ -187,3 +187,117 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
+// SYNC - Sincronización en segundo plano para peticiones offline
+self.addEventListener('sync', event => {
+  console.log('[SW] Evento sync detectado:', event.tag);
+  
+  if (event.tag === 'sync-requests') {
+    event.waitUntil(syncPendingRequests());
+  }
+});
+
+// Función para sincronizar peticiones pendientes
+async function syncPendingRequests() {
+  console.log('[SW] 🔄 Iniciando sincronización de peticiones pendientes...');
+  
+  try {
+    // Abrir IndexedDB
+    const db = await openIndexedDB();
+    const transaction = db.transaction(['pending-requests'], 'readwrite');
+    const store = transaction.objectStore('pending-requests');
+    const requests = await getAllFromStore(store);
+    
+    if (requests.length === 0) {
+      console.log('[SW] No hay peticiones pendientes para sincronizar');
+      return;
+    }
+    
+    console.log(`[SW] 📋 Encontradas ${requests.length} peticiones pendientes`);
+    
+    // Ejecutar cada petición
+    for (const requestData of requests) {
+      try {
+        console.log('[SW] 🚀 Ejecutando petición:', requestData.url);
+        
+        const response = await fetch(requestData.url, {
+          method: requestData.method,
+          headers: requestData.headers,
+          body: requestData.body,
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          console.log('[SW] ✅ Petición sincronizada exitosamente:', requestData.url);
+          
+          // Eliminar de IndexedDB después de ejecutar exitosamente
+          await deleteFromStore(db, requestData.id);
+        } else {
+          console.warn('[SW] ⚠️ Petición falló con código:', response.status);
+          // Podríamos eliminarla si queremos o dejarla para reintentar
+          // Por ahora la dejamos para reintentar en la próxima sincronización
+        }
+      } catch (error) {
+        console.error('[SW] ❌ Error al ejecutar petición:', error);
+        // Dejar la petición para reintentar más tarde
+      }
+    }
+    
+    console.log('[SW] ✅ Sincronización completada');
+  } catch (error) {
+    console.error('[SW] ❌ Error en sincronización:', error);
+    throw error; // Esto hará que el sync se reintente automáticamente
+  }
+}
+
+// Funciones auxiliares para IndexedDB en el Service Worker
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('pokedex-offline-db', 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pending-requests')) {
+        db.createObjectStore('pending-requests', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function getAllFromStore(store) {
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+function deleteFromStore(db, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['pending-requests'], 'readwrite');
+    const store = transaction.objectStore('pending-requests');
+    const request = store.delete(id);
+    
+    request.onsuccess = () => {
+      resolve();
+    };
+    
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}

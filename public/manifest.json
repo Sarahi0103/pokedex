@@ -5,22 +5,11 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "theme_color": "#DC0A2D",
   "background_color": "#DC0A2D",
+  "prefer_related_applications": false,
   "icons": [
-    {
-      "src": "/icons/favicon (1).ico",
-      "sizes": "48x48 32x32 16x16",
-      "type": "image/x-icon",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/favicon (2).ico",
-      "sizes": "72x72",
-      "type": "image/x-icon",
-      "purpose": "maskable"
-    },
     {
       "src": "/icons/icon-72.png",
       "sizes": "72x72",
@@ -70,43 +59,7 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/icons/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/icons/screenshot-mobile.png",
-      "sizes": "640x1136",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Mis Favoritos",
-      "short_name": "Favoritos",
-      "description": "Ver mis Pokémon favoritos",
-      "url": "/favorites",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Mis Equipos",
-      "short_name": "Equipos",
-      "description": "Gestionar mis equipos",
-      "url": "/teams",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Batallas",
-      "short_name": "Batallas",
-      "description": "Iniciar una batalla",
-      "url": "/battle",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    }
-  ],
   "categories": ["games", "entertainment", "education"],
-  "prefer_related_applications": false
+  "lang": "es-ES",
+  "dir": "ltr"
 }
